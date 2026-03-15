@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy lockfiles first to leverage Docker layer caching
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --no-package-lock
 
 # Copy source and build
 COPY . .
