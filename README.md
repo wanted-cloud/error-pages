@@ -116,7 +116,7 @@ The GitHub Actions workflow publishes both the container image and the Helm char
 
 ```sh
 # Install from OCI registry (published with each release)
-helm install error-pages oci://ghcr.io/mrlm-net/error-pages --version 0.1.0 --namespace error-pages --create-namespace
+helm install error-pages oci://ghcr.io/wanted-cloud/charts/error-pages --version 0.1.1 --namespace error-pages --create-namespace
 
 # Or install from source
 helm install error-pages ./charts/error-pages --namespace error-pages --create-namespace
