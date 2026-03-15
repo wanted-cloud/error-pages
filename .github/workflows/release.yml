@@ -108,7 +108,7 @@ jobs:
         run: helm package charts/error-pages --destination /tmp/helm-packages
 
       - name: Push chart
-        run: helm push /tmp/helm-packages/error-pages-${VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}
+        run: helm push /tmp/helm-packages/error-pages-${VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
 
   release:
     name: Create GitHub Release
