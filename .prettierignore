@@ -1,0 +1,15 @@
+# Package Managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lock
+bun.lockb
+
+# Miscellaneous
+/static/
+
+# Helm chart templates use Go template syntax incompatible with Prettier's YAML parser
+/charts/
+
+# Generated files
+sbom.json

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: { { include "error-pages.fullname" . } }
+  namespace: { { .Release.Namespace } }
+  labels: { { - include "error-pages.labels" . | nindent 4 } }
+spec:
+  type: { { .Values.service.type } }
+  selector: { { - include "error-pages.selectorLabels" . | nindent 4 } }
+  ports:
+    - name: http
+      port: { { .Values.service.port } }
+      targetPort: 8080
+      protocol: TCP
