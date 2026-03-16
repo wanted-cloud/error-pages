@@ -7,14 +7,15 @@
 
 <svelte:head>
 	<title>{data.code} {data.reasonPhrase}</title>
+	<link rel="icon" href="https://wanted.solutions/assets/branding/favicon.ico" />
 </svelte:head>
 
 <div class="container" data-theme={THEMES[0]} id="ep-root">
 	<main>
 		<p class="status-code" aria-hidden="true">{data.code}</p>
+		<div class="divider" aria-hidden="true"></div>
 		<h1 class="reason-phrase">{data.reasonPhrase}</h1>
 		<p class="message" id="ep-message">{data.candidateMessages[0]}</p>
-		<a class="home-link" href="/">← go home</a>
 	</main>
 </div>
 
@@ -30,7 +31,12 @@
 </script>`}
 
 <style>
-	/* ─── Reset ──────────────────────────────────────────────────────────────── */
+	/* ─── Reset ───────────────────────────────────────────────────────────────*/
+	:global(html, body) {
+		margin: 0;
+		padding: 0;
+	}
+
 	*,
 	*::before,
 	*::after {
@@ -39,64 +45,48 @@
 		padding: 0;
 	}
 
-	/* ─── Theme token definitions ─────────────────────────────────────────────
-   All four themes defined via data-theme attribute on .container.
-   Tokens are scoped to .container to guarantee no leakage.
+	/* ─── Themes ──────────────────────────────────────────────────────────────
+   Tailwind-aligned color palette. Each theme defines five tokens:
+   --bg, --fg, --muted, --accent, --ring (focus ring).
    ──────────────────────────────────────────────────────────────────────── */
 	.container[data-theme='dark'] {
-		--bg: #0a0a0a;
-		--fg: #f5f5f5;
-		--muted: #a0a0a0;
-		--accent: #7c3aed;
-		--font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-		--glow-color: transparent;
-		--scanline-opacity: 0;
-		--link-radius: 6px;
-		--status-tracking: -0.04em;
+		--bg: #0f172a; /* slate-900  */
+		--fg: #f1f5f9; /* slate-100  */
+		--muted: #94a3b8; /* slate-400  */
+		--accent: #818cf8; /* indigo-400 */
+		--ring: #6366f1; /* indigo-500 */
+		--font-stack: ui-sans-serif, system-ui, -apple-system, sans-serif;
 	}
 
 	.container[data-theme='retro'] {
-		--bg: #1a1200;
-		--fg: #fbbf24;
-		--muted: #a07828; /* Adjusted from #92691a for WCAG AA compliance */
-		--accent: #f59e0b;
+		--bg: #1c1917; /* stone-900  */
+		--fg: #fef3c7; /* amber-100  */
+		--muted: #b45309; /* amber-700  — WCAG AA on stone-900 */
+		--accent: #f59e0b; /* amber-400  */
+		--ring: #fbbf24; /* amber-400  */
 		--font-stack: 'Courier New', Courier, monospace;
-		--glow-color: transparent;
-		--scanline-opacity: 0.06;
-		--link-radius: 0px;
-		--status-tracking: 0.05em;
 	}
 
 	.container[data-theme='neon'] {
-		--bg: #0d0d2b;
-		--fg: #e0e0ff;
-		--muted: #7070cc;
-		--accent: #00f0ff;
-		--font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-		--glow-color: rgba(0, 240, 255, 0.25);
-		--scanline-opacity: 0;
-		--link-radius: 4px;
-		--status-tracking: -0.04em;
+		--bg: #03061a; /* custom deep navy */
+		--fg: #e2e8f0; /* slate-200  */
+		--muted: #7c3aed; /* violet-600 — AA on near-black */
+		--accent: #22d3ee; /* cyan-400   */
+		--ring: #06b6d4; /* cyan-500   */
+		--font-stack: ui-sans-serif, system-ui, -apple-system, sans-serif;
 	}
 
 	.container[data-theme='minimal'] {
-		--bg: #fafafa;
-		--fg: #111111;
-		--muted: #666666;
-		--accent: #374151;
-		--font-stack: Georgia, 'Times New Roman', serif;
-		--glow-color: transparent;
-		--scanline-opacity: 0;
-		--link-radius: 2px;
-		--status-tracking: -0.04em;
+		--bg: #ffffff;
+		--fg: #0f172a; /* slate-900  */
+		--muted: #64748b; /* slate-500  */
+		--accent: #0f172a; /* slate-900  */
+		--ring: #475569; /* slate-600  */
+		--font-stack: ui-sans-serif, system-ui, -apple-system, sans-serif;
 	}
 
-	/* ─── Container ───────────────────────────────────────────────────────────
-   Full-viewport centred layout. Uses dvh with vh fallback for mobile
-   browser chrome handling.
-   ──────────────────────────────────────────────────────────────────────── */
+	/* ─── Container ───────────────────────────────────────────────────────────*/
 	.container {
-		/* Fallback for browsers that do not support dvh */
 		min-height: 100vh;
 		min-height: 100dvh;
 		background-color: var(--bg);
@@ -105,157 +95,103 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		position: relative;
-		overflow: hidden;
 	}
 
-	/* ─── CRT Scanline overlay (retro theme only) ─────────────────────────────
-   pointer-events: none ensures it does not intercept clicks.
-   ──────────────────────────────────────────────────────────────────────── */
-	.container::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background-image: repeating-linear-gradient(
-			0deg,
-			rgba(0, 0, 0, var(--scanline-opacity)) 0px,
-			rgba(0, 0, 0, var(--scanline-opacity)) 1px,
-			transparent 1px,
-			transparent 4px
-		);
-		pointer-events: none;
-		z-index: 1;
-	}
-
-	/* ─── Main content column ─────────────────────────────────────────────────
-   Centred, padded, no breakpoint dependencies.
+	/* ─── Card ────────────────────────────────────────────────────────────────
+   Subtle inset surface for the content block. Gives the page structure
+   without heavy chrome.
    ──────────────────────────────────────────────────────────────────────── */
 	main {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		padding: 24px;
-		max-width: min(90vw, 640px);
+		padding: clamp(32px, 6vw, 64px) clamp(24px, 5vw, 48px);
+		max-width: min(92vw, 560px);
 		width: 100%;
-		position: relative;
-		z-index: 2;
+		border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+		border-radius: 16px;
+		background-color: color-mix(in srgb, var(--fg) 3%, transparent);
+		animation: fade-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
 	}
 
-	/* ─── Status code ─────────────────────────────────────────────────────────
-   Gradient text via background-clip technique.
-   The element is aria-hidden so the number does not get read by screen readers
-   (the reason phrase h1 conveys the error type).
-   ──────────────────────────────────────────────────────────────────────── */
+	/* ─── Status code ─────────────────────────────────────────────────────────*/
 	.status-code {
-		font-size: clamp(6rem, 20vw, 14rem);
+		font-size: clamp(4.5rem, 16vw, 9rem);
 		font-weight: 900;
 		line-height: 1;
-		letter-spacing: var(--status-tracking);
-		background: linear-gradient(135deg, var(--accent), var(--fg));
+		letter-spacing: -0.04em;
+		background: linear-gradient(160deg, var(--accent) 30%, var(--fg));
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
-		color: transparent; /* Fallback for background-clip:text unsupported */
-		overflow-wrap: break-word;
-		margin-bottom: 0;
-		/* Entry animation */
-		animation: fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
-		animation-delay: 0ms;
+		color: transparent;
+		margin-bottom: 8px;
+		animation: slide-down 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
 	}
 
-	/* ─── Neon glow on status code ────────────────────────────────────────────
-   background-clip:text makes the element itself transparent, so text-shadow
-   does not show on the text. We use a filter:drop-shadow workaround instead,
-   which applies to the rendered pixels of the transparent text element.
-   ──────────────────────────────────────────────────────────────────────── */
+	/* Neon glow — drop-shadow works on clip-text where text-shadow does not */
 	.container[data-theme='neon'] .status-code {
-		filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.6))
-			drop-shadow(0 0 12px rgba(0, 240, 255, 0.35)) drop-shadow(0 0 24px rgba(0, 240, 255, 0.15));
+		filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
 		animation:
-			fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both,
-			neon-pulse 4000ms ease-in-out infinite alternate;
-		animation-delay: 0ms, 700ms; /* Pulse starts after entry animation */
+			slide-down 350ms cubic-bezier(0.16, 1, 0.3, 1) both,
+			neon-pulse 3s ease-in-out 1s infinite alternate;
+	}
+
+	/* ─── Divider ─────────────────────────────────────────────────────────────*/
+	.divider {
+		width: 32px;
+		height: 2px;
+		background-color: color-mix(in srgb, var(--accent) 60%, transparent);
+		border-radius: 2px;
+		margin: 16px auto;
+		animation: fade-in 300ms ease both;
+		animation-delay: 100ms;
 	}
 
 	/* ─── Reason phrase ───────────────────────────────────────────────────────*/
 	.reason-phrase {
-		font-size: clamp(1.5rem, 4vw, 3rem);
+		font-size: clamp(1.25rem, 3.5vw, 2rem);
 		font-weight: 700;
-		line-height: 1.1;
-		letter-spacing: -0.01em;
+		line-height: 1.2;
+		letter-spacing: -0.02em;
 		color: var(--fg);
-		margin-top: 0;
-		margin-bottom: 24px;
-		overflow-wrap: break-word;
-		/* Entry animation */
-		animation: fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
-		animation-delay: 100ms;
+		margin-bottom: 12px;
+		animation: fade-in 300ms ease both;
+		animation-delay: 150ms;
 	}
 
-	/* ─── Retro cursor blink on reason phrase ─────────────────────────────────*/
 	.container[data-theme='retro'] .reason-phrase::after {
 		content: '_';
-		display: inline-block;
-		animation: blink 1100ms steps(1) infinite;
+		animation: blink 1s steps(1) infinite;
 		margin-left: 2px;
 	}
 
 	/* ─── Message ─────────────────────────────────────────────────────────────*/
 	.message {
-		font-size: clamp(1rem, 2vw, 1.125rem);
-		font-weight: 400;
-		line-height: 1.6;
+		font-size: clamp(0.875rem, 2vw, 1rem);
+		line-height: 1.65;
 		color: var(--muted);
-		max-width: 40ch;
-		margin-bottom: 48px;
-		overflow-wrap: break-word;
-		/* Entry animation */
-		animation: fade-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+		max-width: 38ch;
+		margin-bottom: 32px;
+		animation: fade-in 300ms ease both;
 		animation-delay: 200ms;
 	}
 
-	/* ─── Home link ───────────────────────────────────────────────────────────*/
-	.home-link {
-		display: inline-block;
-		font-size: clamp(0.875rem, 1.5vw, 1rem);
-		font-weight: 500;
-		letter-spacing: 0.01em;
-		color: var(--accent);
-		text-decoration: none;
-		padding: 12px 24px;
-		border: 1.5px solid var(--accent);
-		border-radius: var(--link-radius);
-		background-color: transparent;
-		transition:
-			background-color 150ms ease,
-			color 150ms ease;
-		/* Entry animation */
-		animation: fade-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
-		animation-delay: 300ms;
-	}
-
-	.home-link:hover {
-		background-color: var(--accent);
-		color: var(--bg);
-		text-decoration: none;
-	}
-
-	/* ─── Focus indicator ─────────────────────────────────────────────────────
-   :focus-visible ensures the ring only appears for keyboard navigation.
-   outline-offset creates separation from the border.
-   ──────────────────────────────────────────────────────────────────────── */
-	.home-link:focus-visible {
-		outline: 3px solid var(--accent);
-		outline-offset: 3px;
-		border-radius: var(--link-radius);
-	}
-
-	/* ─── Keyframe animations ─────────────────────────────────────────────────*/
-	@keyframes fade-up {
+	/* ─── Keyframes ───────────────────────────────────────────────────────────*/
+	@keyframes fade-in {
 		from {
 			opacity: 0;
-			transform: translateY(16px);
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes slide-down {
+		from {
+			opacity: 0;
+			transform: translateY(-12px);
 		}
 		to {
 			opacity: 1;
@@ -265,12 +201,10 @@
 
 	@keyframes neon-pulse {
 		from {
-			filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.6))
-				drop-shadow(0 0 12px rgba(0, 240, 255, 0.35)) drop-shadow(0 0 24px rgba(0, 240, 255, 0.15));
+			filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
 		}
 		to {
-			filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.9))
-				drop-shadow(0 0 18px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 40px rgba(0, 240, 255, 0.25));
+			filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 80%, transparent));
 		}
 	}
 
@@ -284,36 +218,24 @@
 		}
 	}
 
-	/* ─── Reduced motion ──────────────────────────────────────────────────────
-   All animations off. Only functional transitions (link hover) retained,
-   as they are not vestibular-risky.
-   ──────────────────────────────────────────────────────────────────────── */
+	/* ─── Reduced motion ──────────────────────────────────────────────────────*/
 	@media (prefers-reduced-motion: reduce) {
 		.status-code,
+		.divider,
 		.reason-phrase,
 		.message,
-		.home-link {
+		main {
 			animation: none;
 			opacity: 1;
 			transform: none;
 		}
 
 		.container[data-theme='neon'] .status-code {
-			/* Keep static glow, remove pulse */
-			filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.6))
-				drop-shadow(0 0 12px rgba(0, 240, 255, 0.35)) drop-shadow(0 0 24px rgba(0, 240, 255, 0.15));
-			animation: none;
+			filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
 		}
 
 		.container[data-theme='retro'] .reason-phrase::after {
 			animation: none;
-			opacity: 1;
-		}
-
-		.home-link {
-			transition:
-				background-color 150ms ease,
-				color 150ms ease;
 		}
 	}
 </style>
