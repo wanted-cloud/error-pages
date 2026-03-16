@@ -11,7 +11,8 @@ const config = {
 		}),
 		prerender: {
 			entries: ['/', '/400', '/401', '/403', '/404', '/500', '/502', '/503', '/504']
-		}
+		},
+		inlineStyleThreshold: Infinity
 	},
 	vitePlugin: {
 		dynamicCompileOptions: ({ filename }) =>
