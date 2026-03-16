@@ -1,37 +1,33 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { resolve } from '$app/paths';
 	import { THEMES } from '$lib/content';
-	import type { ThemeName } from '$lib/content';
 
 	let { data }: { data: PageData } = $props();
-
-	// Intentional: $state captures the initial value of data.candidateMessages[0] for the SSR render.
-	// data is a prerendered prop — it never changes after hydration, so capturing the initial value
-	// is correct. $effect then overwrites both with Math.random() selections on the client.
-	// The state_referenced_locally warning is expected and safe to ignore here.
-	let theme: ThemeName = $state<ThemeName>(THEMES[0]);
-	let message: string = $state(data.candidateMessages[0]);
-
-	$effect(() => {
-		// Randomise theme and message on the client after hydration.
-		theme = THEMES[Math.floor(Math.random() * THEMES.length)];
-		message = data.candidateMessages[Math.floor(Math.random() * data.candidateMessages.length)];
-	});
 </script>
 
 <svelte:head>
 	<title>{data.code} {data.reasonPhrase}</title>
 </svelte:head>
 
-<div class="container" data-theme={theme}>
+<div class="container" data-theme={THEMES[0]} id="ep-root">
 	<main>
 		<p class="status-code" aria-hidden="true">{data.code}</p>
 		<h1 class="reason-phrase">{data.reasonPhrase}</h1>
-		<p class="message">{message}</p>
-		<a class="home-link" href={resolve('/')}>← go home</a>
+		<p class="message" id="ep-message">{data.candidateMessages[0]}</p>
+		<a class="home-link" href="/">← go home</a>
 	</main>
 </div>
+
+{@html `<script>
+	(function () {
+		var themes = ${JSON.stringify(THEMES)};
+		var messages = ${JSON.stringify(data.candidateMessages)};
+		var root = document.getElementById('ep-root');
+		var msg = document.getElementById('ep-message');
+		if (root) root.setAttribute('data-theme', themes[Math.floor(Math.random() * themes.length)]);
+		if (msg) msg.textContent = messages[Math.floor(Math.random() * messages.length)];
+	})();
+</script>`}
 
 <style>
 	/* ─── Reset ──────────────────────────────────────────────────────────────── */

@@ -3,7 +3,10 @@ import { error } from '@sveltejs/kit';
 import { isStatusCode, reasonPhrases, messages } from '$lib/content';
 
 export const prerender = true;
-export const csr = true;
+// Error pages are served at arbitrary URLs by Traefik's errors middleware.
+// Disabling CSR prevents SvelteKit's client router from running, which would
+// try to match the browser URL against [code] and fail with 'Unknown error code'.
+export const csr = false;
 
 export const load: PageLoad = ({ params }) => {
 	const { code } = params;
