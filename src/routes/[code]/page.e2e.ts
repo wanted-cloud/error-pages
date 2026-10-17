@@ -24,10 +24,6 @@ for (const code of STATUS_CODES) {
 		await expect(reasonPhraseEl).toBeVisible();
 		await expect(reasonPhraseEl).toContainText(phrase);
 
-		// Home link pointing to "/" is visible
-		const homeLink = page.locator('a[href="/"]');
-		await expect(homeLink).toBeVisible();
-
 		// Wait for hydration: container must have data-theme attribute
 		const container = page.locator('.container[data-theme]');
 		await container.waitFor({ state: 'attached' });

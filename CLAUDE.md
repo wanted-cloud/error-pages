@@ -31,14 +31,15 @@ src/
 static/                 # Static assets
 charts/
   error-pages/          # Helm chart: Deployment, Service, Traefik Middleware, IngressRoute
-nginx.conf              # URL rewrite: /{code}.html → /{code}/index.html
+nginx.conf              # Static serving: Traefik's /{code}.html IS the built file
 Dockerfile              # Multi-stage: node:22-alpine build → nginx:alpine serve
 ```
 
 ### How It Works
 
 1. SvelteKit prebuilds all 8 error code routes to static HTML under `build/`
-2. nginx serves them, rewriting Traefik's `/{status}.html` pattern to `/{status}/index.html`
+2. nginx serves them directly — the static adapter emits flat `/{status}.html` files, which is
+   exactly the path Traefik's errors middleware requests (`try_files $uri =404`, no rewrite)
 3. On client-side hydration, `Math.random()` selects a theme and a funny message
 4. Traefik middleware intercepts 400–599 responses and redirects to `/{status}.html`
 
@@ -48,7 +49,7 @@ Dockerfile              # Multi-stage: node:22-alpine build → nginx:alpine ser
 
 ### Themes
 
-`dark` (moody), `retro` (cyberpunk), `neon` (vibrant), `minimal` (light)
+`dark` (deep slate), `retro` (amber CRT), `neon` (synthwave), `minimal` (paper)
 
 ## Development
 
@@ -84,7 +85,13 @@ npm run dev
 
 - **Svelte 5 runes are mandatory** — `$props()`, `$state()`, `$derived()`, `$effect()` everywhere. The `dynamicCompileOptions` in `svelte.config.js` enforces runes mode for all non-node_modules files. Never use Svelte 4 `export let` syntax.
 - Component styles are **self-contained** — no external CSS files for error page components. Use `<style>` blocks with CSS custom properties.
-- Theming via `data-theme` attribute and CSS custom properties (`--bg`, `--fg`, `--muted`, `--accent`).
+- Theming via `data-theme` attribute and CSS custom properties. Every theme defines the full token
+  set (`--bg`, `--fg`, `--muted`, `--accent`, `--accent-2`, `--surface`, `--edge`, `--field-a`,
+  `--field-b`, `--grid`, `--font-stack`) so no layout rule has to branch per theme.
+- No external fonts or images: the page's own CSP is `default-src 'self'`, and an error page must
+  render when everything else is degraded.
+- Beware `animation-fill-mode: both` — the keyframe's end state wins over a plain `opacity` on the
+  same element. Elements that settle at a non-1 opacity need their own keyframe.
 
 ### TypeScript
 
@@ -95,7 +102,7 @@ npm run dev
 
 - Unit tests live alongside source in `src/lib/vitest-examples/` pattern (colocated `.spec.ts` files)
 - E2E tests in `src/routes/**/page.svelte.e2e.ts` pattern (Playwright)
-- After build: verify `build/` contains 8 directories (one per status code)
+- After build: verify `build/` contains 8 `{code}.html` files (one per status code)
 
 ### Git
 
@@ -113,8 +120,8 @@ npm run dev
 - Workflow file: `.github/workflows/release.yml`
 - Triggers on `v*` tags (e.g. `v0.1.0`, `v1.0.0`)
 - Gate: unit tests (`npm run check` + `npm run test:unit -- --run`) must pass before any artifact is built
-- Publishes container image to `ghcr.io/mrlm-net/error-pages:{version}` (multi-arch: `linux/amd64` + `linux/arm64`)
-- Publishes Helm chart as OCI artifact to `oci://ghcr.io/mrlm-net/error-pages:{version}`
+- Publishes container image to `ghcr.io/wanted-cloud/error-pages:{version}` (multi-arch: `linux/amd64` + `linux/arm64`)
+- Publishes Helm chart as OCI artifact to `oci://ghcr.io/wanted-cloud/error-pages:{version}`
 - Chart `version` and `appVersion` in `charts/error-pages/Chart.yaml` are stamped from the git tag at publish time
 
 ## Key Files
@@ -125,7 +132,7 @@ npm run dev
 | `src/routes/[code]/+page.svelte` | The error page component                                    |
 | `src/routes/[code]/+page.ts`     | Loader — extracts `code` from params                        |
 | `svelte.config.js`               | Prerender entries for all 8 codes + adapter config          |
-| `nginx.conf`                     | URL rewrite rule for Traefik integration                    |
+| `nginx.conf`                     | Static serving + security headers for Traefik integration   |
 | `Dockerfile`                     | Multi-stage container build                                 |
 | `charts/error-pages/`            | Helm chart for Kubernetes/Traefik                           |
 
@@ -134,7 +141,7 @@ npm run dev
 ### Traefik
 
 - Traefik sends `GET /{status_code}.html` when a backend returns an error
-- nginx rewrites to `/{status_code}/index.html` (SvelteKit SSG structure)
+- nginx serves that file directly — adapter-static emits flat `/{code}.html`, no rewrite needed
 - Individual Ingresses opt in via: `traefik.ingress.kubernetes.io/router.middlewares: <namespace>-error-pages@kubernetescrd`
 - Catch-all IngressRoute handles unregistered hosts at lowest priority
 
@@ -143,7 +150,7 @@ npm run dev
 ```yaml
 namespace: error-pages
 image:
-  repository: ghcr.io/mrlm-net/error-pages
+  repository: ghcr.io/wanted-cloud/error-pages
   tag: latest
 theme: dark # default theme hint (actual selection is random client-side)
 ```

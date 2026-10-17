@@ -25,12 +25,19 @@ Messages are selected randomly on client-side hydration. Each code has 4–7 opt
 
 ## Themes
 
-| Theme     | Personality                                        |
-| --------- | -------------------------------------------------- |
-| `dark`    | Moody, dark backgrounds with muted accents         |
-| `retro`   | Cyberpunk-inspired with high-contrast neon on dark |
-| `neon`    | Vibrant, high-energy color palette                 |
-| `minimal` | Clean, light, distraction-free                     |
+| Theme     | Personality                                                              |
+| --------- | ------------------------------------------------------------------------ |
+| `dark`    | Deep slate. Indigo→sky numeral, soft light source, faint structural grid |
+| `retro`   | Amber CRT. Monospace, scanlines, vignette, blinking cursor               |
+| `neon`    | Synthwave. Cyan→pink numeral over a receding floor grid, pulsing glow    |
+| `minimal` | Paper. Ink numeral with one red accent on a tight hairline grid          |
+
+Every theme defines the same token set (`--bg`, `--fg`, `--muted`, `--accent`, `--accent-2`,
+`--surface`, `--edge`, `--field-a`, `--field-b`, `--grid`, `--font-stack`), so the layout never
+branches on which one was rolled. All `--fg`/`--muted` on `--bg` pairs clear WCAG AA.
+
+Backgrounds are pure CSS gradients — no images, no fonts, nothing to fetch. An error page has to
+render when the rest of the estate does not.
 
 Theme selection is random on each page load. All four themes are available for every status code without any configuration.
 
@@ -39,7 +46,7 @@ Theme selection is random on each page load. All four themes are available for e
 Run the container locally to see the error pages in a browser:
 
 ```sh
-docker run --rm -p 8080:8080 ghcr.io/mrlm-net/error-pages:latest
+docker run --rm -p 8080:8080 ghcr.io/wanted-cloud/error-pages:latest
 ```
 
 Then open any of the prerendered pages:
@@ -116,7 +123,7 @@ The GitHub Actions workflow publishes both the container image and the Helm char
 
 ```sh
 # Install from OCI registry (published with each release)
-helm install error-pages oci://ghcr.io/wanted-cloud/charts/error-pages --version 0.2.0 --namespace error-pages --create-namespace
+helm install error-pages oci://ghcr.io/wanted-cloud/charts/error-pages --version 0.2.1 --namespace error-pages --create-namespace
 
 # Or install from source
 helm install error-pages ./charts/error-pages --namespace error-pages --create-namespace
@@ -133,20 +140,20 @@ helm install error-pages ./charts/error-pages \
 
 ### Values Reference
 
-| Value                       | Default                        | Description                                                           |
-| --------------------------- | ------------------------------ | --------------------------------------------------------------------- |
-| `namespace`                 | _(release namespace)_          | Kubernetes namespace for all resources                                |
-| `image.repository`          | `ghcr.io/mrlm-net/error-pages` | Container image repository                                            |
-| `image.tag`                 | `latest`                       | Image tag to deploy                                                   |
-| `image.pullPolicy`          | `IfNotPresent`                 | Kubernetes image pull policy                                          |
-| `replicaCount`              | `1`                            | Number of pod replicas                                                |
-| `resources.requests.cpu`    | `10m`                          | CPU request                                                           |
-| `resources.requests.memory` | `16Mi`                         | Memory request                                                        |
-| `resources.limits.cpu`      | `100m`                         | CPU limit                                                             |
-| `resources.limits.memory`   | `32Mi`                         | Memory limit                                                          |
-| `middleware.name`           | `error-pages`                  | Name of the Traefik `Middleware` CRD                                  |
-| `ingressRoute.entryPoints`  | `[web, websecure]`             | Traefik entry points for the catch-all `IngressRoute`                 |
-| `ingressRoute.priority`     | `1`                            | Route match priority — keep this low so real services take precedence |
+| Value                       | Default                            | Description                                                           |
+| --------------------------- | ---------------------------------- | --------------------------------------------------------------------- |
+| `namespace`                 | _(release namespace)_              | Kubernetes namespace for all resources                                |
+| `image.repository`          | `ghcr.io/wanted-cloud/error-pages` | Container image repository                                            |
+| `image.tag`                 | `latest`                           | Image tag to deploy                                                   |
+| `image.pullPolicy`          | `IfNotPresent`                     | Kubernetes image pull policy                                          |
+| `replicaCount`              | `1`                                | Number of pod replicas                                                |
+| `resources.requests.cpu`    | `10m`                              | CPU request                                                           |
+| `resources.requests.memory` | `16Mi`                             | Memory request                                                        |
+| `resources.limits.cpu`      | `100m`                             | CPU limit                                                             |
+| `resources.limits.memory`   | `32Mi`                             | Memory limit                                                          |
+| `middleware.name`           | `error-pages`                      | Name of the Traefik `Middleware` CRD                                  |
+| `ingressRoute.entryPoints`  | `[web, websecure]`                 | Traefik entry points for the catch-all `IngressRoute`                 |
+| `ingressRoute.priority`     | `1`                                | Route match priority — keep this low so real services take precedence |
 
 > **Note:** The middleware annotation on other Ingresses must match the deployed namespace and middleware name. With defaults: `error-pages-error-pages@kubernetescrd`.
 
@@ -222,7 +229,7 @@ To verify the output before building the container:
 ```sh
 npm run build
 ls build/
-# Expect: 400  401  403  404  500  502  503  504
+# Expect: 400.html  401.html  403.html  404.html  500.html  502.html  503.html  504.html
 ```
 
 ## Architecture
