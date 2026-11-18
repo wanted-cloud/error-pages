@@ -15,7 +15,7 @@ Apache 2.0
 - **Test framework**: Vitest (unit/component) + Playwright (E2E)
 - **Package manager**: npm (yarn.lock present from scaffold, but use `npm` for all operations)
 - **Node target**: 22
-- **Container**: nginx:alpine serving prerendered HTML on port 8080
+- **Container**: nginx:1.30.7-alpine (pinned) serving prerendered HTML on port 8080
 - **Orchestration**: Helm chart with Traefik CRDs (traefik.io/v1alpha1)
 
 ## Architecture
@@ -32,7 +32,7 @@ static/                 # Static assets
 charts/
   error-pages/          # Helm chart: Deployment, Service, Traefik Middleware, IngressRoute
 nginx.conf              # Static serving: Traefik's /{code}.html IS the built file
-Dockerfile              # Multi-stage: node:22-alpine build → nginx:alpine serve
+Dockerfile              # Multi-stage: node:22-alpine build → nginx:1.30.7-alpine serve
 ```
 
 ### How It Works

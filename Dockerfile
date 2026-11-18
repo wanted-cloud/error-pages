@@ -12,7 +12,9 @@ COPY . .
 RUN npm run build
 
 # ── Stage 2: Serve ───────────────────────────────────────────────────────────
-FROM nginx:alpine
+# Pinned: 1.30.7 is the patched stable for the 2026-11 nginx CVE. A floating tag only
+# picked fixes up on whatever day the image happened to be rebuilt.
+FROM nginx:1.30.7-alpine
 
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
